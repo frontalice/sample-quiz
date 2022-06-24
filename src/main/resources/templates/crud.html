@@ -44,26 +44,26 @@
 		<!--/* ▼▼▼ クイズ情報が1件でもあれば表示 ▼▼▼ */-->
 		<table border="1" th:unless="${#lists.isEmpty(list)}" style="table-layout: fixed;">
 			<tr>
-				<th>ID</th>
-				<th>内容</th>
-				<th>解答</th>
-				<th>作成者</th>
-				<th>編集</th>
-				<th>削除</th>
+				<th class="question-id">ID</th>
+				<th class="question">内容</th>
+				<th class="answer">解答</th>
+				<th class="question-author">作成者</th>
+				<th class="edit">編集</th>
+				<th class="delete">削除</th>
 			</tr>
 			<tr th:each="obj : ${list}" align="center">
-				<td th:text="${obj.id}"></td>
-				<td th:text="${obj.question}" align="left"></td>
-				<td th:text="${obj.answer} == true?'〇':'×'"></td>
-				<td th:text="${obj.author}"></td>
+				<td class="question-id" th:text="${obj.id}"></td>
+				<td class="question" th:text="${obj.question}" align="left"></td>
+				<td class="answer" th:text="${obj.answer} == true?'〇':'×'"></td>
+				<td class="question-author" th:text="${obj.author}"></td>
 				<!--/* 編集ボタン */-->
-				<td>
+				<td class="edit">
 					<form method="GET" th:action="@{/quiz/{id}(id=${obj.id})}">
 						<input type="submit" value="編集">
 					</form>
 				</td>
 				<!--/* 削除ボタン */-->
-				<td>
+				<td class="delete">
 					<form method="POST" th:action="@{/quiz/delete}">
 						<input type="hidden" name="id" th:value="${obj.id}"> <input
 							type="submit" value="削除">
