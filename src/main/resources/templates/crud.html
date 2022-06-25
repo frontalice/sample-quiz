@@ -30,6 +30,9 @@
 		<input th:if="${id}" type="hidden" th:field="*{id}">
 		<input type="submit" value="送信">
 	</form>
+	<form th:action="@{/logout}" method="post">
+		<button>ログアウト</button>
+	</form>
 	<!--/* △△△ Form △△△ */-->
 	<br>
 	<!--/* ========== ここまで上部エリア ========== */-->
