@@ -20,6 +20,10 @@ public class QuizServiceImpl implements QuizService {
 		return repository.findAll();
 	}
 	@Override
+	public Long countQuizzes() {
+		return repository.count();
+	}
+	@Override
 	public Optional<Quiz> selectOneById(Integer id) {
 		return repository.findById(id);
 	}

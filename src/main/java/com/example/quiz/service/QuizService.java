@@ -8,6 +8,8 @@ import com.example.quiz.entity.Quiz;
 public interface QuizService {
 	/** クイズ情報を全件取得します */
 	Iterable<Quiz> selectAll();
+	/** クイズの総問題数を取得します */
+	Long countQuizzes();
 	/** クイズ情報を、idをキーに1件取得します */
 	Optional<Quiz> selectOneById(Integer id);
 	/** クイズ情報をランダムで1件取得します */

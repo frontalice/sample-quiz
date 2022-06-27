@@ -7,6 +7,13 @@
 </head>
 <body th:with="user=${#authentication.principal.user}">
 	<h1>「〇×クイズ」アプリ：CRUD</h1>
+	
+	<p th:text="|${user.userName}さんの正答率： ${correctRate}%|"></p>
+	<form th:action="@{/logout}" method="post">
+		<button>ログアウト</button>
+	</form>
+	<hr>
+	
 	<h3 th:text="${title}">タイトル</h3>
 	<!--/* 登録・更新完了コメント */-->
 	<p th:if="${complete}" th:text="${complete}" style="color: blue"></p>
@@ -23,8 +30,6 @@
 		<input type="radio" value="false" th:field="*{answer}">「×」
 		<br>
 		<div th:if="${#fields.hasErrors('answer')}" th:errors="*{answer}" style="color: red"></div>
-		<label>作成者： </label>
-		<span th:text="${user.userName}"></span>
 		<input type="hidden" th:name="author" th:value="${user.userName}">
 		<!-- <input type="hidden" th:field="${user.userName}"> -->
 			<!-- th:fieldはフォームオブジェクトのみバインディングするので↑だとエラーになる -->
@@ -32,9 +37,6 @@
 		<div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color: red"></div>
 		<input th:if="${id}" type="hidden" th:field="*{id}">
 		<input type="submit" value="送信">
-	</form>
-	<form th:action="@{/logout}" method="post">
-		<button>ログアウト</button>
 	</form>
 	<!--/* △△△ Form △△△ */-->
 	<br>

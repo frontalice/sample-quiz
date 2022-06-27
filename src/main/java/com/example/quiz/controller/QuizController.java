@@ -44,13 +44,20 @@ public class QuizController {
 
 	/** Quizの一覧を表示します */
 	@GetMapping
-	public String showList(QuizForm quizForm, Model model) {
+	public String showList(QuizForm quizForm,
+			@AuthenticationPrincipal QuizUserDetails userDetails,
+			Model model) {
 		//新規登録設定
 		quizForm.setNewQuiz(true);
+		//正解数と総問題数から正答率を計算
+		long corrects = answerService.countCorrects(userDetails.getUsername());
+		long quizCount = quizService.countQuizzes();
+		Integer correctRate = (int)((float) corrects / (float) quizCount * 100);
 		//掲示板の一覧を取得する
 		Iterable<Quiz> list = quizService.selectAll();
 		// 表示用「Model」への格納
 		model.addAttribute("list", list);
+		model.addAttribute("correctRate", correctRate);
 		model.addAttribute("title", "登録用フォーム");
 		return "crud";
 	}
@@ -58,6 +65,7 @@ public class QuizController {
 	/** Quizデータを1件挿入 */
 	@PostMapping("/insert")
 	public String insert(@Validated QuizForm quizForm, BindingResult bindingResult,
+			@AuthenticationPrincipal QuizUserDetails userDetails,
 			Model model, RedirectAttributes redirectAttributes) {
 		// FormからEntityへの詰め替え
 		Quiz quiz = new Quiz();
@@ -71,7 +79,7 @@ public class QuizController {
 			return "redirect:/quiz";
 		} else {
 			// エラーがある場合は、一覧表示処理を呼びます
-			return showList(quizForm, model);
+			return showList(quizForm, userDetails, model);
 		}
 	}
 

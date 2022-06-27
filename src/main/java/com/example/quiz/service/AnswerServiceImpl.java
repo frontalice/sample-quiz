@@ -17,4 +17,9 @@ public class AnswerServiceImpl implements AnswerService {
 	public void insertAnswer(Answer answer) {
 		repository.save(answer);
 	}
+	
+	@Override
+	public Long countCorrects(String name) {
+		return repository.countCorrectedQuizzes(name);
+	}
 }
