@@ -3,6 +3,7 @@ package com.example.quiz.controller;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.quiz.entity.Answer;
 import com.example.quiz.entity.Quiz;
 import com.example.quiz.form.QuizForm;
+import com.example.quiz.service.AnswerService;
 import com.example.quiz.service.QuizService;
+import com.example.quiz.service.QuizUserDetails;
 
 /** Quizコントローラー */
 @Controller
@@ -25,7 +29,9 @@ import com.example.quiz.service.QuizService;
 public class QuizController {
 	/** DI対象 */
 	@Autowired
-	QuizService service;
+	QuizService quizService;
+	@Autowired
+	AnswerService answerService;
 
 	/** 「form-backing bean」の初期化 */
 	@ModelAttribute
@@ -42,7 +48,7 @@ public class QuizController {
 		//新規登録設定
 		quizForm.setNewQuiz(true);
 		//掲示板の一覧を取得する
-		Iterable<Quiz> list = service.selectAll();
+		Iterable<Quiz> list = quizService.selectAll();
 		// 表示用「Model」への格納
 		model.addAttribute("list", list);
 		model.addAttribute("title", "登録用フォーム");
@@ -60,7 +66,7 @@ public class QuizController {
 		quiz.setAuthor(quizForm.getAuthor());
 		// 入力チェック
 		if (!bindingResult.hasErrors()) {
-			service.insertQuiz(quiz);
+			quizService.insertQuiz(quiz);
 			redirectAttributes.addFlashAttribute("complete", "登録が完了しました");
 			return "redirect:/quiz";
 		} else {
@@ -73,7 +79,7 @@ public class QuizController {
 	@GetMapping("/{id}")
 	public String showUpdate(QuizForm quizForm, @PathVariable Integer id, Model model) {
 		//Quizを取得(Optionalでラップ)
-		Optional<Quiz> quizOpt = service.selectOneById(id);
+		Optional<Quiz> quizOpt = quizService.selectOneById(id);
 		//QuizFormへの詰め直し
 		Optional<QuizForm> quizFormOpt = quizOpt.map(t -> makeQuizForm(t));
 		//QuizFormがnullでなければ中身を取り出す
@@ -105,7 +111,7 @@ public class QuizController {
 		// 入力チェック
 		if (!result.hasErrors()) {
 			//更新処理、フラッシュスコープの使用、リダイレクト（個々の編集ページ）
-			service.updateQuiz(quiz);
+			quizService.updateQuiz(quiz);
 			redirectAttributes.addFlashAttribute("complete", "更新が完了しました");
 			// 更新画面を表示する
 			return "redirect:/quiz/" + quiz.getId();
@@ -123,7 +129,7 @@ public class QuizController {
 			Model model,
 			RedirectAttributes redirectAttributes) {
 		//タスクを1件削除してリダイレクト
-		service.deleteQuizById(Integer.parseInt(id));
+		quizService.deleteQuizById(Integer.parseInt(id));
 		redirectAttributes.addFlashAttribute("delcomplete", "削除が完了しました");
 		return "redirect:/quiz";
 	}
@@ -133,7 +139,7 @@ public class QuizController {
 	@GetMapping("/play")
 	public String showQuiz(QuizForm quizForm, Model model) {
 		//Quizを取得(Optionalでラップ)
-		Optional<Quiz> quizOpt = service.selectOneRandomQuiz();
+		Optional<Quiz> quizOpt = quizService.selectOneRandomQuiz();
 		// 値が入っているか判定する
 		if (quizOpt.isPresent()) {
 			// QuizFormへの詰め直し
@@ -150,11 +156,16 @@ public class QuizController {
 
 	/** クイズの正解/不正解を判定する */
 	@PostMapping("/check")
-	public String checkQuiz(QuizForm quizForm, @RequestParam Boolean answer, Model model) {
-		if (service.checkQuiz(quizForm.getId(), answer)) {
+	public String checkQuiz(QuizForm quizForm,
+			@AuthenticationPrincipal QuizUserDetails userDetails,
+			@RequestParam Boolean answer,
+			Model model) {
+		if (quizService.checkQuiz(quizForm.getId(), answer)) {
 			model.addAttribute("msg", "正解です！");
+			recordAnswer(quizForm.getId(), userDetails.getUsername(), true);
 		} else {
 			model.addAttribute("msg", "残念、不正解です・・・");
+			recordAnswer(quizForm.getId(), userDetails.getUsername(), false);
 		}
 		return "answer";
 	}
@@ -178,5 +189,13 @@ public class QuizController {
 		form.setAuthor(quiz.getAuthor());
 		form.setNewQuiz(false);
 		return form;
+	}
+	
+	private void recordAnswer(Integer quizId, String answerer, Boolean result) {
+		Answer answer = new Answer();
+		answer.setQuizId(quizId);
+		answer.setAnswerer(answerer);
+		answer.setResult(result);
+		answerService.insertAnswer(answer);
 	}
 }
