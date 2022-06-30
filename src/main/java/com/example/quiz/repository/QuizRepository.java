@@ -7,6 +7,7 @@ import com.example.quiz.entity.Quiz;
 
 /** Quizテーブル：RepositoryImpl */
 public interface QuizRepository extends CrudRepository<Quiz, Integer> {
-	@Query("SELECT id FROM quiz ORDER BY RANDOM() limit 1")
+//	@Query("SELECT id FROM quiz ORDER BY RANDOM() limit 1")  // PostgreSQL
+	@Query("SELECT id FROM quiz ORDER BY RAND() limit 1")	// MySQL
 	Integer getRandomId();
 }
